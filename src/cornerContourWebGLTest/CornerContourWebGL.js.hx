@@ -102,9 +102,9 @@ class CornerContourWebGL {
             j++;
             arr32[ j ] = red;
             j++;
-            arr32[ j ] = blue;
-            j++;
             arr32[ j ] = green;
+            j++;
+            arr32[ j ] = blue;
             j++;
             arr32[ j ] = alpha;
             j++;
@@ -114,9 +114,9 @@ class CornerContourWebGL {
             j++;
             arr32[ j ] = red;
             j++;
-            arr32[ j ] = blue;
-            j++;
             arr32[ j ] = green;
+            j++;
+            arr32[ j ] = blue;
             j++;
             arr32[ j ] = alpha;
             j++;
@@ -126,9 +126,9 @@ class CornerContourWebGL {
             j++;
             arr32[ j ] = red;
             j++;
-            arr32[ j ] = blue;
-            j++;
             arr32[ j ] = green;
+            j++;
+            arr32[ j ] = blue;
             j++;
             arr32[ j ] = alpha;
             j++;

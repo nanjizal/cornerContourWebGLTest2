@@ -4589,9 +4589,9 @@ cornerContourWebGLTest_CornerContourWebGL.prototype = {
 			++j;
 			this.arr32[j] = red;
 			++j;
-			this.arr32[j] = blue;
-			++j;
 			this.arr32[j] = green;
+			++j;
+			this.arr32[j] = blue;
 			++j;
 			this.arr32[j] = alpha;
 			++j;
@@ -4601,9 +4601,9 @@ cornerContourWebGLTest_CornerContourWebGL.prototype = {
 			++j;
 			this.arr32[j] = red;
 			++j;
-			this.arr32[j] = blue;
-			++j;
 			this.arr32[j] = green;
+			++j;
+			this.arr32[j] = blue;
 			++j;
 			this.arr32[j] = alpha;
 			++j;
@@ -4613,9 +4613,9 @@ cornerContourWebGLTest_CornerContourWebGL.prototype = {
 			++j;
 			this.arr32[j] = red;
 			++j;
-			this.arr32[j] = blue;
-			++j;
 			this.arr32[j] = green;
+			++j;
+			this.arr32[j] = blue;
 			++j;
 			this.arr32[j] = alpha;
 			++j;
