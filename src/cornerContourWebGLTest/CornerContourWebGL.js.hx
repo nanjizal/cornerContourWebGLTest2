@@ -137,7 +137,7 @@ class CornerContourWebGL {
     public
     function drawContours(){
         trace( 'drawContours' );
-        pen2D = new Pen2D( 0x0000FF );
+        pen2D = new Pen2D( 0xFF0000FF );
         arcSVG();
         pen2D.currentColor = 0xff0000FF;
         birdSVG();

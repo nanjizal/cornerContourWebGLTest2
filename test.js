@@ -4623,7 +4623,7 @@ cornerContourWebGLTest_CornerContourWebGL.prototype = {
 	}
 	,drawContours: function() {
 		haxe_Log.trace("drawContours",{ fileName : "src/cornerContourWebGLTest/CornerContourWebGL.js.hx", lineNumber : 139, className : "cornerContourWebGLTest.CornerContourWebGL", methodName : "drawContours"});
-		this.pen2D = new cornerContour_Pen2D(255);
+		this.pen2D = new cornerContour_Pen2D(-16776961);
 		this.arcSVG();
 		this.pen2D.currentColor = -16776961;
 		this.birdSVG();
