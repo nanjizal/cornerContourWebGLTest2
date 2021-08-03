@@ -1,0 +1,18 @@
+-lib fracs
+-lib justPath
+-lib pallette
+-lib hxPolyK
+-lib poly2trihx 
+-lib hxGeomAlgo
+-lib cornerContour
+
+-v
+
+#-D doc-gen
+--macro include('cornerContourWebGLTest')
+-cp src
+-main cornerContourWebGLTest.doc.Doc
+--no-output
+-xml output.xml
+-js foo
+-D dump==pretty
