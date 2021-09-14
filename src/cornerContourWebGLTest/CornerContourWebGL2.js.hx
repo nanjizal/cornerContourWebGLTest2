@@ -1,7 +1,8 @@
 package cornerContourWebGLTest;
 
 import cornerContour.io.Float32Array;
-
+import cornerContour.io.ColorTriangles2D;
+import cornerContour.io.IteratorRange;
 // contour code
 import cornerContour.Sketcher;
 import cornerContour.Pen2D;
@@ -23,6 +24,8 @@ import cornerContourWebGLTest.GL;
 import cornerContourWebGLTest.Sheet;
 import cornerContourWebGLTest.DivertTrace;
 
+import htmlHelper.tools.AnimateTimer;
+
 // js webgl 
 import js.html.webgl.Buffer;
 import js.html.webgl.RenderingContext;
@@ -30,10 +33,10 @@ import js.html.webgl.Program;
 import js.html.webgl.Texture;
 
 function main(){
-    new CornerContourWebGL();
+    new CornerContourWebGL2();
 }
 
-class CornerContourWebGL {
+class CornerContourWebGL2 {
     // cornerContour specific code
     var sketcher:       Sketcher;
     var pen2D:          Pen2D;
@@ -51,12 +54,18 @@ class CornerContourWebGL {
     public var width:            Int;
     public var height:           Int;
     public var mainSheet:        Sheet;
-
+    
+    var birdRange:     IteratorRange;
+    var quadRange:     IteratorRange;
+    var cubicRange:    IteratorRange;
+    var arcRange:      IteratorRange;
+    var arcLastRange:  IteratorRange;
+    
     // Color
     public var programColor:     Program;
     public var bufColor:         Buffer;
     var divertTrace:             DivertTrace;
-    var arr32:                   Float32Array;
+    var arrData:                   ColorTriangles2D;
     var len:                     Int;
     var totalTriangles:          Int;
     var bufferLength:            Int;
@@ -65,10 +74,26 @@ class CornerContourWebGL {
         trace('Contour Test');
         width = 1024;
         height = 768;
+        creategl();
         // use Pen to draw to Array
         drawContours();
         rearrageDrawData();
-        renderOnce();
+        setupProgramColor();
+        setupInputColor();
+        
+        // call when changing program mode
+        setProgramMode();
+        
+        setAnimate();
+        
+        //renderOnce();
+        
+    }
+    inline
+    function creategl( ){
+        mainSheet = new Sheet();
+        mainSheet.create( width, height, true );
+        gl = mainSheet.gl;
     }
     
     public
@@ -76,64 +101,27 @@ class CornerContourWebGL {
         trace( 'rearrangeDrawData' );
         var pen = pen2D;
         var data = pen.arr;
-        var red    = 0.;   
-        var green  = 0.;
-        var blue   = 0.; 
-        var alpha  = 0.;
-        var color: Int  = 0;
         // triangle length
         totalTriangles = Std.int( data.size/7 );
         bufferLength = totalTriangles*3;
          // xy rgba = 6
         len = Std.int( totalTriangles * 6 * 3 );
         var j = 0;
-        arr32 = new Float32Array( len );
+        arrData = new ColorTriangles2D( len );
         for( i in 0...totalTriangles ){
             pen.pos = i;
-            color = Std.int( data.color );
-            alpha = alphaChannel( color );
-            red   = redChannel(   color );
-            green = greenChannel( color );
-            blue  = blueChannel(  color );
-            // populate arr32.
-            arr32[ j ] = gx( data.ax );
-            j++;
-            arr32[ j ] = gy( data.ay );
-            j++;
-            arr32[ j ] = red;
-            j++;
-            arr32[ j ] = green;
-            j++;
-            arr32[ j ] = blue;
-            j++;
-            arr32[ j ] = alpha;
-            j++;
-            arr32[ j ] = gx( data.bx );
-            j++;
-            arr32[ j ] = gy( data.by );
-            j++;
-            arr32[ j ] = red;
-            j++;
-            arr32[ j ] = green;
-            j++;
-            arr32[ j ] = blue;
-            j++;
-            arr32[ j ] = alpha;
-            j++;
-            arr32[ j ] = gx( data.cx );
-            j++;
-            arr32[ j ] = gy( data.cy );
-            j++;
-            arr32[ j ] = red;
-            j++;
-            arr32[ j ] = green;
-            j++;
-            arr32[ j ] = blue;
-            j++;
-            arr32[ j ] = alpha;
-            j++;
+            // populate arrData.
+            arrData.pos    = i;
+            arrData.ax     = gx( data.ax );
+            arrData.ay     = gy( data.ay );
+            arrData.bx     = gx( data.bx );
+            arrData.by     = gy( data.by );
+            arrData.cx     = gx( data.cx );
+            arrData.cy     = gy( data.cy );
+            arrData.argb   = Std.int( data.color );
         }
     }
+
     public
     function drawContours(){
         trace( 'drawContours' );
@@ -144,37 +132,92 @@ class CornerContourWebGL {
         cubicSVG();
         quadSVG();
     }
-    public
-    function renderOnce(){
-        trace( 'renderOnce' );
-        mainSheet = new Sheet();
-        mainSheet.create( width, height, true );
-        gl = mainSheet.gl;
-        clearAll( gl, width, height, 0., 0., 0., 1. );
+    
+    function setProgramMode() {
+        //gl.bindBuffer( GL.ARRAY_BUFFER, null );
+        gl.useProgram( programColor );
+        updateBufferXY_RGBA( gl, programColor, vertexPosition, vertexColor );
+        gl.bindBuffer( GL.ARRAY_BUFFER, bufColor );
+    }
+    inline
+    function setupProgramColor(){
         programColor = programSetup( gl, vertexString, fragmentString );
+    }
+    var first = true;
+    var theta = 0.;
+    inline
+    function render(){
+        clearAll( gl, width, height, 0., 0., 0., 1. );
+        //gl.bindBuffer( RenderingContext.ARRAY_BUFFER, bufColor );
+        var totalTriangles = Std.int( pen2D.arr.size/7 );
+        var len = Std.int( totalTriangles * 6 * 3 );
+        //if( first ) {
+            //arrData.scaleRangeCentre( birdRange, 1.5 , 1.5 );
+            //}
+            /// shape shape collision detection very heavy unless shapes are lite.
+        //if( arrData.rangeCollisionRough( quadRange, birdRange ) ){
+          //  arrData.argbRange( birdRange, 0xFF0000FF );
+        //} else {
+            arrData.blendBetweenColorRange( 0xcccccc00, 0xFF00ff00
+                                      , birdRange, Math.cos( theta/5 ), true );
+        //}
+        arrData.moveRangeXY( birdRange, 0.001 * Math.sin( theta ), 0 );
+        //arrData.rgbRange( quadRange, Std.random( 0xFFFFFF ) );
+        arrData.alphaRange( arcRange, 0.5 + 0.3*Math.sin( theta - Math.PI/2 ) );
+        arrData.blendBetweenColorRange( 0xccFF0000, 0xFF0000ff
+                                      , quadRange, Math.cos( theta/5 ), true );
+        arrData.moveRangeXY( arcLastRange, 0, 0.005 * Math.sin( theta - Math.PI/8 ) );
+        if( first ) {
+            arrData.scaleRangeCentre( cubicRange, 1.5 , 1.5 );
+            
+        }
+        arrData.rotateRange( quadRange, gx(280), gy(250), Math.PI/100 );
+        first = false;
+        theta+= 0.1;
+        drawData( programColor, arrData.getFloat32Array(), 0, totalTriangles, len );
+        
+        // gl.bindBuffer( GL.ARRAY_BUFFER, bufColor );
+        // TODO: sort out the -3 aspect!!!
+        // gl.drawArrays( GL.TRIANGLES, 0, Std.int( bufferLength-3 ) );
+        //trace('render len ' + len );
+        //trace('render totalTriangles ' + totalTriangles );
+        //AnimateTimer.onFrame = function( v: Int ){ };
+    }
+    inline
+    function setAnimate(){
+        AnimateTimer.create();
+        AnimateTimer.onFrame = function( v: Int ) render();
+    }
+    inline
+    function setupInputColor(){
         gl.bindBuffer( GL.ARRAY_BUFFER, null );
         gl.useProgram( programColor );
+        var arr = arrData.getFloat32Array();
+        //trace('setupInputColor ' + arr.length/3 );
         bufColor = interleaveXY_RGBA( gl
-                       , programColor
-                       , arr32
-                       , vertexPosition, vertexColor, true );
+                                    , programColor
+                                    , arr
+                                    , vertexPosition, vertexColor, true );
         gl.bindBuffer( GL.ARRAY_BUFFER, bufColor );
-        gl.useProgram( programColor );
-        gl.drawArrays( GL.TRIANGLES, 0, bufferLength );
-        
     }
-    public static inline
-    function alphaChannel( int: Int ) : Float
-        return ((int >> 24) & 255) / 255;
-    public static inline
-    function redChannel( int: Int ) : Float
-        return ((int >> 16) & 255) / 255;
-    public static inline
-    function greenChannel( int: Int ) : Float
-        return ((int >> 8) & 255) / 255;
-    public static inline
-    function blueChannel( int: Int ) : Float
-        return (int & 255) / 255;
+
+    public
+    function drawData( program: Program, dataGL: Float32Array, start: Int, end: Int, len: Int ){
+        //trace( 'drawData ' + arrData );
+        //gl.bindBuffer( GL.ARRAY_BUFFER, bufColor );
+        var partData = dataGL.subarray( start*len, end*len );
+        gl.bufferSubData( GL.ARRAY_BUFFER, 0, cast partData );
+        gl.useProgram( program );
+        // TODO: sort out the -3 aspect
+        gl.drawArrays( GL.TRIANGLES, 0, Std.int( ( end - start ) * 3 - 3 ) );
+    }
+    /*
+    public
+    function drawColorShape( start: Int, end: Int ) {
+        setProgramMode( ModeColor );
+        drawData( programColor, dataGLcolor, start, end, 21 );
+    }
+    */
     public inline
     function gx( v: Float ): Float {
         return -( 1 - 2*v/width );
@@ -188,17 +231,20 @@ class CornerContourWebGL {
      */
     public
     function birdSVG(){
+        var start = Std.int( pen2D.pos );
         var sketcher = new Sketcher( pen2D, StyleSketch.Fine, StyleEndLine.both );
         sketcher.width = 2;
         var scaleTranslateContext = new ScaleTranslateContext( sketcher, 20, 0, 1, 1 );
         var p = new SvgPath( scaleTranslateContext );
         p.parse( bird_d );
+        birdRange = start...Std.int( pen2D.pos );
     }
     /** 
      * draws cubic SVG
      */
     public
     function cubicSVG(){
+        var start = Std.int( pen2D.pos );
         var sketcher = new Sketcher( pen2D, StyleSketch.Fine, StyleEndLine.both );
         sketcher.width = 10;
         // function to adjust color of curve along length
@@ -208,12 +254,14 @@ class CornerContourWebGL {
         var translateContext = new TranslationContext( sketcher, 50, 200 );
         var p = new SvgPath( translateContext );
         p.parse( cubictest_d );
+        cubicRange = start...Std.int( pen2D.pos );
     }
     /**
      * draws quad SVG
      */
     public
     function quadSVG(){
+        var start = Std.int( pen2D.pos );
         var sketcher = new Sketcher( pen2D, StyleSketch.Fine, StyleEndLine.both );
         sketcher.width = 1;
         // function to adjust width of curve along length
@@ -223,6 +271,7 @@ class CornerContourWebGL {
         var translateContext = new ScaleTranslateContext( sketcher, 0, 100, 0.5, 0.5 );
         var p = new SvgPath( translateContext );
         p.parse( quadtest_d );
+        quadRange = start...Std.int( pen2D.pos );
     }
     /**
      * draws elipse arcs
@@ -242,10 +291,15 @@ class CornerContourWebGL {
         var x1 = 450;
         var yPos = [ -30, 100, 250, 400 ];
         var arcs = [ arcs0, arcs1, arcs2, arcs3, arcs4, arcs5, arcs6, arcs7 ];
+        var start = Std.int( pen2D.pos );
+        var startLast = 0;
         for( i in 0...yPos.length ){
+            startLast = Std.int( pen2D.pos );
             drawSet( arcs.shift(), pallet, x0, yPos[i], 0.5 );
             drawSet( arcs.shift(), pallet, x1, yPos[i], 0.5 );
         }
+        arcRange = start...Std.int( pen2D.pos );
+        arcLastRange = startLast...Std.int( pen2D.pos );
     }
     // draws a set of svg ellipses.
     function drawSet( arcs: Array<String>, col:Array<Int>, x: Float, y: Float, s: Float ){    

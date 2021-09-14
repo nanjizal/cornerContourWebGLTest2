@@ -5,6 +5,7 @@
 -lib poly2trihx 
 -lib hxGeomAlgo
 -lib cornerContour
+-lib htmlHelper
 
 -v
 

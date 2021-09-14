@@ -7,8 +7,9 @@
 -lib poly2trihx 
 -lib hxGeomAlgo
 -lib cornerContour
+-lib htmlHelper
 
--main cornerContourWebGLTest.CornerContourWebGL
+-main cornerContourWebGLTest.CornerContourWebGL2
 -D js-flatten 
 -dce full
 #--no-traces

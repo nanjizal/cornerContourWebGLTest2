@@ -1,5 +1,5 @@
 package cornerContourWebGLTest.doc;
-import cornerContourWebGLTest.CornerContourWebGL;
+import cornerContourWebGLTest.CornerContourWebGL2;
 
 @:dox(hide)
 class Doc {

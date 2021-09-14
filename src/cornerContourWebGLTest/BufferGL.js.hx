@@ -78,7 +78,7 @@ function interleaveXY_RGBA( gl:            GL
                            , ?isDynamic:    Bool = false ): Buffer {
     var vbo          = bufferSetup( gl, program, data, isDynamic ); 
     // X Y   R G B A
-    inputAttEnable( gl,  program, xyName, 2, 6, 0 );
+    inputAttEnable( gl, program, xyName,   2, 6, 0 );
     inputAttEnable( gl, program, rgbaName, 4, 6, 2 );
     return vbo;
 }
