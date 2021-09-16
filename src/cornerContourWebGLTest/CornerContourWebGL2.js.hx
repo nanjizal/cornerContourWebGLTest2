@@ -161,12 +161,12 @@ class CornerContourWebGL2 {
             arrData.blendBetweenColorRange( 0xcccccc00, 0xFF00ff00
                                       , birdRange, Math.cos( theta/5 ), true );
         //}
-        arrData.moveRangeXY( birdRange, 0.001 * Math.sin( theta ), 0 );
+        arrData.translateRange( birdRange, 0.001 * Math.sin( theta ), 0 );
         //arrData.rgbRange( quadRange, Std.random( 0xFFFFFF ) );
         arrData.alphaRange( arcRange, 0.5 + 0.3*Math.sin( theta - Math.PI/2 ) );
         arrData.blendBetweenColorRange( 0xccFF0000, 0xFF0000ff
                                       , quadRange, Math.cos( theta/5 ), true );
-        arrData.moveRangeXY( arcLastRange, 0, 0.005 * Math.sin( theta - Math.PI/8 ) );
+        arrData.translateRange( arcLastRange, 0, 0.005 * Math.sin( theta - Math.PI/8 ) );
         if( first ) {
             arrData.scaleRangeCentre( cubicRange, 1.5 , 1.5 );
             
